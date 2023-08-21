@@ -1,6 +1,8 @@
 package resources
 
 import (
+	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/appconfig"
@@ -50,4 +52,25 @@ func (f *AppConfigDeploymentStrategy) Properties() types.Properties {
 	return types.NewProperties().
 		Set("ID", f.id).
 		Set("Name", f.name)
+}
+
+func (f *AppConfigDeploymentStrategy) Filter() error {
+    predefinedDeployments := []string{
+		"AppConfig.AllAtOnce",
+		"AppConfig.Linear50PercentEvery30Seconds",
+		"AppConfig.Canary10Percent20Minutes",
+		"AppConfig.Linear20PercentEvery6Minutes",
+	}
+	isPredefined := false
+
+	for _, pd := range predefinedDeployments {
+		if pd == *f.name {
+			isPredefined = true
+			break
+		}
+	}
+	if isPredefined {
+		return fmt.Errorf("cannot delete predefined deployment strategy")
+	}
+	return nil
 }
